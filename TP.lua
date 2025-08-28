@@ -4,46 +4,36 @@ local hrp = character:WaitForChild("HumanoidRootPart")
 local humanoid = character:WaitForChild("Humanoid")
 local PlayerGui = player:WaitForChild("PlayerGui")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 
--- Paramètres
 local normalSpeed = 16
 local boostSpeed = 100
 local boostEnabled = false
 local noclipEnabled = false
-local invincibleEnabled = false
 
 -- UI compacte
 local screenGui = Instance.new("ScreenGui", PlayerGui)
 screenGui.ResetOnSpawn = false
 
 local frame = Instance.new("Frame", screenGui)
-frame.Size = UDim2.new(0,160,0,50)
+frame.Size = UDim2.new(0,140,0,50)
 frame.Position = UDim2.new(0,10,0,10)
 frame.BackgroundColor3 = Color3.fromRGB(50,50,50)
 frame.BackgroundTransparency = 0.4
-frame.BorderSizePixel = 0
 
--- Boutons
 local boostButton = Instance.new("TextButton", frame)
-boostButton.Size = UDim2.new(0.33,0,1,0)
+boostButton.Size = UDim2.new(0.5,0,1,0)
 boostButton.Position = UDim2.new(0,0,0,0)
 boostButton.Text = "Boost OFF"
 boostButton.BackgroundColor3 = Color3.fromRGB(255,170,0)
 boostButton.TextScaled = true
 
 local noclipButton = Instance.new("TextButton", frame)
-noclipButton.Size = UDim2.new(0.33,0,1,0)
-noclipButton.Position = UDim2.new(0.33,0,0,0)
+noclipButton.Size = UDim2.new(0.5,0,1,0)
+noclipButton.Position = UDim2.new(0.5,0,0,0)
 noclipButton.Text = "Noclip OFF"
 noclipButton.BackgroundColor3 = Color3.fromRGB(0,170,255)
 noclipButton.TextScaled = true
-
-local invButton = Instance.new("TextButton", frame)
-invButton.Size = UDim2.new(0.34,0,1,0)
-invButton.Position = UDim2.new(0.66,0,0,0)
-invButton.Text = "Inv OFF"
-invButton.BackgroundColor3 = Color3.fromRGB(170,0,255)
-invButton.TextScaled = true
 
 -- Toggle Boost
 boostButton.MouseButton1Click:Connect(function()
@@ -57,33 +47,20 @@ noclipButton.MouseButton1Click:Connect(function()
     noclipButton.Text = noclipEnabled and "Noclip ON" or "Noclip OFF"
 end)
 
--- Toggle Invincible
-invButton.MouseButton1Click:Connect(function()
-    invincibleEnabled = not invincibleEnabled
-    invButton.Text = invincibleEnabled and "Inv ON" or "Inv OFF"
-end)
-
--- Fonction Noclip
-local function noclip()
-    for _, part in pairs(character:GetDescendants()) do
-        if part:IsA("BasePart") then
-            part.CanCollide = not not noclipEnabled
-        end
-    end
-end
-
--- Boucle principale
-RunService.RenderStepped:Connect(function()
+-- Déplacement noclip
+RunService.RenderStepped:Connect(function(delta)
     -- Boost
     if humanoid then
         humanoid.WalkSpeed = boostEnabled and boostSpeed or normalSpeed
     end
 
-    -- Noclip
-    noclip()
-
-    -- Invincible
-    if invincibleEnabled then
-        humanoid.Health = humanoid.MaxHealth
+    -- Noclip via CFrame
+    if noclipEnabled then
+        local moveVector = Vector3.new()
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveVector = moveVector + Vector3.new(0,0,-1) end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveVector = moveVector + Vector3.new(0,0,1) end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveVector = moveVector + Vector3.new(-1,0,0) end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveVector = moveVector + Vector3.new(1,0,0) end
+        hrp.CFrame = hrp.CFrame + moveVector.Unit * (boostEnabled and boostSpeed or normalSpeed) * delta
     end
 end)

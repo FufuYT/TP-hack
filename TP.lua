@@ -1,9 +1,9 @@
+loadstring([[
 local player = game.Players.LocalPlayer
 local mouse = player:GetMouse()
 local hrp = player.Character:WaitForChild("HumanoidRootPart")
 local PlayerGui = player:WaitForChild("PlayerGui")
 
--- Variable globale pour sauvegarder la position
 local savedPosition = nil
 
 -- UI
@@ -50,10 +50,14 @@ selectButton.MouseButton1Click:Connect(function()
     end)
 end)
 
--- TP à la position sauvegardée
+-- TP stable
 tpButton.MouseButton1Click:Connect(function()
     if savedPosition then
-        hrp.CFrame = CFrame.new(savedPosition + Vector3.new(0,5,0))
+        -- Téléportation avec petit ajustement pour éviter le retour
+        for i=1,2 do
+            hrp.CFrame = CFrame.new(savedPosition + Vector3.new(0,5,0))
+            wait(0.05)
+        end
         infoLabel.Text = "Téléporté !"
         print("Téléporté à :", savedPosition)
     else
@@ -61,3 +65,4 @@ tpButton.MouseButton1Click:Connect(function()
         infoLabel.Text = "Aucune position sauvegardée !"
     end
 end)
+]])()

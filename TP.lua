@@ -1,73 +1,75 @@
-loadstring([[
 local player = game.Players.LocalPlayer
-local mouse = player:GetMouse()
 local hrp = player.Character:WaitForChild("HumanoidRootPart")
+local humanoid = player.Character:WaitForChild("Humanoid")
+local runService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local PlayerGui = player:WaitForChild("PlayerGui")
 
-local savedPosition = nil
+humanoid.PlatformStand = true
 
--- UI
+-- BodyPosition pour bobine de gravité
+local bp = Instance.new("BodyPosition")
+bp.MaxForce = Vector3.new(1e5,1e5,1e5)
+bp.D = 10
+bp.P = 5000
+bp.Position = hrp.Position
+bp.Parent = hrp
+
+local flyEnabled = false
+local gravEnabled = false
+local targetPos = hrp.Position
+
+-- UI boutons
 local screenGui = Instance.new("ScreenGui", PlayerGui)
 screenGui.ResetOnSpawn = false
 
-local selectButton = Instance.new("TextButton", screenGui)
-selectButton.Size = UDim2.new(0, 80, 0, 40)
-selectButton.Position = UDim2.new(0, 20, 0, 20)
-selectButton.Text = "+"
-selectButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-selectButton.TextColor3 = Color3.new(1,1,1)
-selectButton.Font = Enum.Font.SourceSansBold
-selectButton.TextScaled = true
+local flyButton = Instance.new("TextButton", screenGui)
+flyButton.Size = UDim2.new(0,100,0,50)
+flyButton.Position = UDim2.new(0,20,0,20)
+flyButton.Text = "Fly"
+flyButton.BackgroundColor3 = Color3.fromRGB(0,170,255)
+flyButton.TextScaled = true
 
-local tpButton = Instance.new("TextButton", screenGui)
-tpButton.Size = UDim2.new(0, 80, 0, 40)
-tpButton.Position = UDim2.new(0, 20, 0, 70)
-tpButton.Text = "TP"
-tpButton.BackgroundColor3 = Color3.fromRGB(0, 255, 85)
-tpButton.TextColor3 = Color3.new(0,0,0)
-tpButton.Font = Enum.Font.SourceSansBold
-tpButton.TextScaled = true
+local gravButton = Instance.new("TextButton", screenGui)
+gravButton.Size = UDim2.new(0,100,0,50)
+gravButton.Position = UDim2.new(0,20,0,80)
+gravButton.Text = "Gravité"
+gravButton.BackgroundColor3 = Color3.fromRGB(0,255,85)
+gravButton.TextScaled = true
 
-local infoLabel = Instance.new("TextLabel", screenGui)
-infoLabel.Size = UDim2.new(0, 300, 0, 30)
-infoLabel.Position = UDim2.new(0, 120, 0, 20)
-infoLabel.Text = ""
-infoLabel.TextColor3 = Color3.fromRGB(255,255,255)
-infoLabel.BackgroundTransparency = 1
-infoLabel.Font = Enum.Font.SourceSansBold
-infoLabel.TextScaled = true
-
--- Sélection de position
-selectButton.MouseButton1Click:Connect(function()
-    infoLabel.Text = "Cliquez sur un endroit"
-    print("Cliquez sur l'endroit où vous voulez vous téléporter")
-    local connection
-    connection = mouse.Button1Down:Connect(function()
-        savedPosition = mouse.Hit.Position
-        infoLabel.Text = "Position sauvegardée !"
-        print("Position sauvegardée :", savedPosition)
-        connection:Disconnect()
-    end)
+flyButton.MouseButton1Click:Connect(function()
+    flyEnabled = not flyEnabled
+    flyButton.Text = flyEnabled and "Fly ON" or "Fly OFF"
 end)
 
--- TP stable
-tpButton.MouseButton1Click:Connect(function()
-    if savedPosition then
-        local humanoid = player.Character:FindFirstChild("Humanoid")
-        if humanoid then humanoid.PlatformStand = true end -- désactive la physique
+gravButton.MouseButton1Click:Connect(function()
+    gravEnabled = not gravEnabled
+    gravButton.Text = gravEnabled and "Grav ON" or "Grav OFF"
+end)
 
-        for i=1,5 do
-            hrp.CFrame = CFrame.new(savedPosition + Vector3.new(0,5,0))
-            wait(0.05)
-        end
-
-        if humanoid then humanoid.PlatformStand = false end -- réactive la physique
-
-        infoLabel.Text = "Téléporté !"
-        print("Téléporté à :", savedPosition)
-    else
-        warn("Aucune position sauvegardée !")
-        infoLabel.Text = "Aucune position sauvegardée !"
+-- Suivi tactile pour la gravité
+UserInputService.InputBegan:Connect(function(input)
+    if gravEnabled and input.UserInputType == Enum.UserInputType.Touch then
+        targetPos = workspace.CurrentCamera:ScreenPointToRay(input.Position.X, input.Position.Y).Origin
     end
 end)
-]])()
+
+UserInputService.InputChanged:Connect(function(input)
+    if gravEnabled and input.UserInputType == Enum.UserInputType.Touch then
+        targetPos = workspace.CurrentCamera:ScreenPointToRay(input.Position.X, input.Position.Y).Origin
+    end
+end)
+
+runService.RenderStepped:Connect(function(delta)
+    if flyEnabled then
+        -- simple fly en restant à la position actuelle du HumanoidRootPart (déplacement libre avec gravité désactivée)
+        bp.Position = hrp.Position
+    end
+
+    if gravEnabled then
+        local dir = targetPos - hrp.Position
+        if dir.Magnitude > 0 then
+            bp.Position = hrp.Position + dir.Unit * 50 * delta
+        end
+    end
+end)

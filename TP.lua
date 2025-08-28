@@ -1,10 +1,10 @@
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
-local hrp = character:WaitForChild("HumanoidRootPart")
 local humanoid = character:WaitForChild("Humanoid")
 local PlayerGui = player:WaitForChild("PlayerGui")
 
-local speedBoost = 100 -- vitesse du boost
+local boostSpeed = 100 -- vitesse du boost
+local normalSpeed = 16 -- vitesse normale
 local boostEnabled = false
 
 -- UI compacte
@@ -21,23 +21,22 @@ frame.BorderSizePixel = 0
 local boostButton = Instance.new("TextButton", frame)
 boostButton.Size = UDim2.new(1,0,1,0)
 boostButton.Position = UDim2.new(0,0,0,0)
-boostButton.Text = "Boost OFF"
+boostButton.Text = "Vitesse OFF"
 boostButton.BackgroundColor3 = Color3.fromRGB(255,170,0)
 boostButton.TextScaled = true
 
--- Activer / désactiver le boost
 boostButton.MouseButton1Click:Connect(function()
     boostEnabled = not boostEnabled
-    boostButton.Text = boostEnabled and "Boost ON" or "Boost OFF"
+    boostButton.Text = boostEnabled and "Vitesse ON" or "Vitesse OFF"
 end)
 
--- Appliquer le boost
-humanoid.WalkSpeed = 16 -- vitesse normale
-
+-- Appliquer le boost à chaque frame
 game:GetService("RunService").RenderStepped:Connect(function()
-    if boostEnabled then
-        humanoid.WalkSpeed = speedBoost
-    else
-        humanoid.WalkSpeed = 16 -- remettre à la normale si boost off
+    if humanoid then
+        if boostEnabled then
+            humanoid.WalkSpeed = boostSpeed
+        else
+            humanoid.WalkSpeed = normalSpeed
+        end
     end
 end)

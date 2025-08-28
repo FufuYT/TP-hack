@@ -53,11 +53,16 @@ end)
 -- TP stable
 tpButton.MouseButton1Click:Connect(function()
     if savedPosition then
-        -- Téléportation avec petit ajustement pour éviter le retour
-        for i=1,2 do
+        local humanoid = player.Character:FindFirstChild("Humanoid")
+        if humanoid then humanoid.PlatformStand = true end -- désactive la physique
+
+        for i=1,5 do
             hrp.CFrame = CFrame.new(savedPosition + Vector3.new(0,5,0))
             wait(0.05)
         end
+
+        if humanoid then humanoid.PlatformStand = false end -- réactive la physique
+
         infoLabel.Text = "Téléporté !"
         print("Téléporté à :", savedPosition)
     else

@@ -1,66 +1,54 @@
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local hrp = character:WaitForChild("HumanoidRootPart")
-local humanoid = character:WaitForChild("Humanoid")
 local PlayerGui = player:WaitForChild("PlayerGui")
 local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
+local mouse = player:GetMouse()
 
-local normalSpeed = 16
-local boostSpeed = 100
-local boostEnabled = false
-local noclipEnabled = false
+local targetPos = nil
+local choosing = false
 
--- UI compacte
+-- UI
 local screenGui = Instance.new("ScreenGui", PlayerGui)
 screenGui.ResetOnSpawn = false
 
 local frame = Instance.new("Frame", screenGui)
-frame.Size = UDim2.new(0,140,0,50)
+frame.Size = UDim2.new(0,160,0,50)
 frame.Position = UDim2.new(0,10,0,10)
 frame.BackgroundColor3 = Color3.fromRGB(50,50,50)
 frame.BackgroundTransparency = 0.4
 
-local boostButton = Instance.new("TextButton", frame)
-boostButton.Size = UDim2.new(0.5,0,1,0)
-boostButton.Position = UDim2.new(0,0,0,0)
-boostButton.Text = "Boost OFF"
-boostButton.BackgroundColor3 = Color3.fromRGB(255,170,0)
-boostButton.TextScaled = true
+local chooseButton = Instance.new("TextButton", frame)
+chooseButton.Size = UDim2.new(0.5,0,1,0)
+chooseButton.Position = UDim2.new(0,0,0,0)
+chooseButton.Text = "+ (Choisir)"
+chooseButton.BackgroundColor3 = Color3.fromRGB(0,170,255)
+chooseButton.TextScaled = true
 
-local noclipButton = Instance.new("TextButton", frame)
-noclipButton.Size = UDim2.new(0.5,0,1,0)
-noclipButton.Position = UDim2.new(0.5,0,0,0)
-noclipButton.Text = "Noclip OFF"
-noclipButton.BackgroundColor3 = Color3.fromRGB(0,170,255)
-noclipButton.TextScaled = true
+local tpButton = Instance.new("TextButton", frame)
+tpButton.Size = UDim2.new(0.5,0,1,0)
+tpButton.Position = UDim2.new(0.5,0,0,0)
+tpButton.Text = "TP"
+tpButton.BackgroundColor3 = Color3.fromRGB(255,170,0)
+tpButton.TextScaled = true
 
--- Toggle Boost
-boostButton.MouseButton1Click:Connect(function()
-    boostEnabled = not boostEnabled
-    boostButton.Text = boostEnabled and "Boost ON" or "Boost OFF"
+-- Choisir la position
+chooseButton.MouseButton1Click:Connect(function()
+    choosing = true
+    chooseButton.Text = "Cliquez sur un endroit"
 end)
 
--- Toggle Noclip
-noclipButton.MouseButton1Click:Connect(function()
-    noclipEnabled = not noclipEnabled
-    noclipButton.Text = noclipEnabled and "Noclip ON" or "Noclip OFF"
-end)
-
--- Déplacement noclip
-RunService.RenderStepped:Connect(function(delta)
-    -- Boost
-    if humanoid then
-        humanoid.WalkSpeed = boostEnabled and boostSpeed or normalSpeed
+mouse.Button1Down:Connect(function()
+    if choosing then
+        targetPos = mouse.Hit.Position
+        choosing = false
+        chooseButton.Text = "+ (Choisir)"
     end
+end)
 
-    -- Noclip via CFrame
-    if noclipEnabled then
-        local moveVector = Vector3.new()
-        if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveVector = moveVector + Vector3.new(0,0,-1) end
-        if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveVector = moveVector + Vector3.new(0,0,1) end
-        if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveVector = moveVector + Vector3.new(-1,0,0) end
-        if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveVector = moveVector + Vector3.new(1,0,0) end
-        hrp.CFrame = hrp.CFrame + moveVector.Unit * (boostEnabled and boostSpeed or normalSpeed) * delta
+-- TP à la position choisie
+tpButton.MouseButton1Click:Connect(function()
+    if targetPos then
+        hrp.CFrame = CFrame.new(targetPos)
     end
 end)

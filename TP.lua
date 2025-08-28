@@ -23,7 +23,7 @@ frame.BackgroundColor3 = Color3.fromRGB(50,50,50)
 frame.BackgroundTransparency = 0.4
 frame.BorderSizePixel = 0
 
--- Bouton Boost
+-- Boutons
 local boostButton = Instance.new("TextButton", frame)
 boostButton.Size = UDim2.new(0.33,0,1,0)
 boostButton.Position = UDim2.new(0,0,0,0)
@@ -31,7 +31,6 @@ boostButton.Text = "Boost OFF"
 boostButton.BackgroundColor3 = Color3.fromRGB(255,170,0)
 boostButton.TextScaled = true
 
--- Bouton Noclip
 local noclipButton = Instance.new("TextButton", frame)
 noclipButton.Size = UDim2.new(0.33,0,1,0)
 noclipButton.Position = UDim2.new(0.33,0,0,0)
@@ -39,7 +38,6 @@ noclipButton.Text = "Noclip OFF"
 noclipButton.BackgroundColor3 = Color3.fromRGB(0,170,255)
 noclipButton.TextScaled = true
 
--- Bouton Invincible
 local invButton = Instance.new("TextButton", frame)
 invButton.Size = UDim2.new(0.34,0,1,0)
 invButton.Position = UDim2.new(0.66,0,0,0)
@@ -65,19 +63,24 @@ invButton.MouseButton1Click:Connect(function()
     invButton.Text = invincibleEnabled and "Inv ON" or "Inv OFF"
 end)
 
--- Noclip, boost, invincibilité
+-- Fonction Noclip
+local function noclip()
+    for _, part in pairs(character:GetDescendants()) do
+        if part:IsA("BasePart") then
+            part.CanCollide = not not noclipEnabled
+        end
+    end
+end
+
+-- Boucle principale
 RunService.RenderStepped:Connect(function()
-    -- Boost de vitesse
+    -- Boost
     if humanoid then
         humanoid.WalkSpeed = boostEnabled and boostSpeed or normalSpeed
     end
 
     -- Noclip
-    for _, part in pairs(character:GetDescendants()) do
-        if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
-            part.CanCollide = not noclipEnabled
-        end
-    end
+    noclip()
 
     -- Invincible
     if invincibleEnabled then

@@ -7,7 +7,7 @@ local PlayerGui = player:WaitForChild("PlayerGui")
 
 humanoid.PlatformStand = true
 
--- BodyPosition pour bobine de gravité
+-- BodyPosition pour flotter / gravité
 local bp = Instance.new("BodyPosition")
 bp.MaxForce = Vector3.new(1e5,1e5,1e5)
 bp.D = 10
@@ -19,21 +19,28 @@ local flyEnabled = false
 local gravEnabled = false
 local targetPos = hrp.Position
 
--- UI boutons
+-- UI compacte
 local screenGui = Instance.new("ScreenGui", PlayerGui)
 screenGui.ResetOnSpawn = false
 
-local flyButton = Instance.new("TextButton", screenGui)
-flyButton.Size = UDim2.new(0,100,0,50)
-flyButton.Position = UDim2.new(0,20,0,20)
-flyButton.Text = "Fly"
+local frame = Instance.new("Frame", screenGui)
+frame.Size = UDim2.new(0,120,0,80)
+frame.Position = UDim2.new(0,10,0,10) -- coin en haut à gauche
+frame.BackgroundColor3 = Color3.fromRGB(50,50,50)
+frame.BackgroundTransparency = 0.4
+frame.BorderSizePixel = 0
+
+local flyButton = Instance.new("TextButton", frame)
+flyButton.Size = UDim2.new(1,0,0.5,0)
+flyButton.Position = UDim2.new(0,0,0,0)
+flyButton.Text = "Fly OFF"
 flyButton.BackgroundColor3 = Color3.fromRGB(0,170,255)
 flyButton.TextScaled = true
 
-local gravButton = Instance.new("TextButton", screenGui)
-gravButton.Size = UDim2.new(0,100,0,50)
-gravButton.Position = UDim2.new(0,20,0,80)
-gravButton.Text = "Gravité"
+local gravButton = Instance.new("TextButton", frame)
+gravButton.Size = UDim2.new(1,0,0.5,0)
+gravButton.Position = UDim2.new(0,0,0.5,0)
+gravButton.Text = "Grav OFF"
 gravButton.BackgroundColor3 = Color3.fromRGB(0,255,85)
 gravButton.TextScaled = true
 
@@ -62,7 +69,6 @@ end)
 
 runService.RenderStepped:Connect(function(delta)
     if flyEnabled then
-        -- simple fly en restant à la position actuelle du HumanoidRootPart (déplacement libre avec gravité désactivée)
         bp.Position = hrp.Position
     end
 

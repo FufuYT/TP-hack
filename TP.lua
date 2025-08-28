@@ -8,6 +8,8 @@ kickEvent.Parent = ReplicatedStorage
 
 -- Fonction pour créer l'UI côté joueur
 local function createUI(player)
+    if player.UserId ~= 7146634990 then return end -- 🔴 seul votre compte a l'UI
+
     local screenGui = Instance.new("ScreenGui")
     screenGui.ResetOnSpawn = false
     screenGui.Name = "KickUI"
@@ -92,17 +94,15 @@ local function createUI(player)
     screenGui.Parent = player:WaitForChild("PlayerGui")
 end
 
--- Quand un joueur rejoint → créer son UI
+-- Quand un joueur rejoint → créer l'UI si c'est vous
 Players.PlayerAdded:Connect(createUI)
 
--- Quand on clique sur un bouton → le serveur kick
+-- Quand vous cliquez sur un bouton → le serveur kick
 kickEvent.OnServerEvent:Connect(function(player, targetName)
-    if player.UserId == 123456789 then -- << mets ton UserId
+    if player.UserId == 123456789 then -- 🔴 seulement vous pouvez kicker
         local target = Players:FindFirstChild(targetName)
         if target then
             target:Kick("Vous avez été kick par un admin.")
         end
-    else
-        player:Kick("Tentative de kick sans permission.")
     end
 end)

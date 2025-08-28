@@ -1,54 +1,58 @@
-local player = game.Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local hrp = character:WaitForChild("HumanoidRootPart")
-local PlayerGui = player:WaitForChild("PlayerGui")
-local RunService = game:GetService("RunService")
-local mouse = player:GetMouse()
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local targetPos = nil
-local choosing = false
+local kickEvent = ReplicatedStorage:WaitForChild("KickPlayerEvent")
+local localPlayer = Players.LocalPlayer
 
--- UI
-local screenGui = Instance.new("ScreenGui", PlayerGui)
-screenGui.ResetOnSpawn = false
+-- Création d'un ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = localPlayer:WaitForChild("PlayerGui")
 
-local frame = Instance.new("Frame", screenGui)
-frame.Size = UDim2.new(0,160,0,50)
-frame.Position = UDim2.new(0,10,0,10)
-frame.BackgroundColor3 = Color3.fromRGB(50,50,50)
-frame.BackgroundTransparency = 0.4
+-- Cadre principal
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 200, 0, 300)
+frame.Position = UDim2.new(0, 20, 0, 100)
+frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+frame.Parent = screenGui
 
-local chooseButton = Instance.new("TextButton", frame)
-chooseButton.Size = UDim2.new(0.5,0,1,0)
-chooseButton.Position = UDim2.new(0,0,0,0)
-chooseButton.Text = "+ (Choisir)"
-chooseButton.BackgroundColor3 = Color3.fromRGB(0,170,255)
-chooseButton.TextScaled = true
+-- Titre
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 30)
+title.Text = "Liste des joueurs"
+title.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.Parent = frame
 
-local tpButton = Instance.new("TextButton", frame)
-tpButton.Size = UDim2.new(0.5,0,1,0)
-tpButton.Position = UDim2.new(0.5,0,0,0)
-tpButton.Text = "TP"
-tpButton.BackgroundColor3 = Color3.fromRGB(255,170,0)
-tpButton.TextScaled = true
+-- Liste des joueurs
+local listLayout = Instance.new("UIListLayout")
+listLayout.Parent = frame
+listLayout.Padding = UDim.new(0, 5)
+listLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
--- Choisir la position
-chooseButton.MouseButton1Click:Connect(function()
-    choosing = true
-    chooseButton.Text = "Cliquez sur un endroit"
-end)
+-- Fonction pour créer un bouton joueur
+local function createPlayerButton(player)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(1, 0, 0, 30)
+    button.Text = player.Name
+    button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.Parent = frame
 
-mouse.Button1Down:Connect(function()
-    if choosing then
-        targetPos = mouse.Hit.Position
-        choosing = false
-        chooseButton.Text = "+ (Choisir)"
+    button.MouseButton1Click:Connect(function()
+        kickEvent:FireServer(player.Name) -- demande au serveur de kicker
+    end)
+end
+
+-- Remplir la liste au début
+for _, player in ipairs(Players:GetPlayers()) do
+    if player ~= localPlayer then
+        createPlayerButton(player)
     end
-end)
+end
 
--- TP à la position choisie
-tpButton.MouseButton1Click:Connect(function()
-    if targetPos then
-        hrp.CFrame = CFrame.new(targetPos)
+-- Quand un joueur rejoint
+Players.PlayerAdded:Connect(function(player)
+    if player ~= localPlayer then
+        createPlayerButton(player)
     end
 end)

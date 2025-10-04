@@ -1,108 +1,52 @@
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+-- Script à mettre dans StarterGui (LocalScript)
 
--- Crée un RemoteEvent automatiquement
-local kickEvent = Instance.new("RemoteEvent")
-kickEvent.Name = "KickPlayerEvent"
-kickEvent.Parent = ReplicatedStorage
+local player = game.Players.LocalPlayer
+local mouse = player:GetMouse()
 
--- Fonction pour créer l'UI côté joueur
-local function createUI(player)
-    if player.UserId ~= 7146634990 then return end -- 🔴 seul votre compte a l'UI
+-- GUI
+local ScreenGui = Instance.new("ScreenGui")
+local PlusButton = Instance.new("TextButton")
+local TPButton = Instance.new("TextButton")
 
-    local screenGui = Instance.new("ScreenGui")
-    screenGui.ResetOnSpawn = false
-    screenGui.Name = "KickUI"
+ScreenGui.Parent = player:WaitForChild("PlayerGui")
 
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 250, 0, 350)
-    frame.Position = UDim2.new(0, 50, 0.2, 0)
-    frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    frame.BorderSizePixel = 0
-    frame.Parent = screenGui
+-- Bouton "+"
+PlusButton.Parent = ScreenGui
+PlusButton.Size = UDim2.new(0, 50, 0, 50)
+PlusButton.Position = UDim2.new(0.05, 0, 0.8, 0)
+PlusButton.Text = "+"
 
-    local title = Instance.new("TextLabel")
-    title.Size = UDim2.new(1, 0, 0, 40)
-    title.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    title.Text = "Kick Players"
-    title.Font = Enum.Font.SourceSansBold
-    title.TextSize = 20
-    title.TextColor3 = Color3.fromRGB(255, 255, 255)
-    title.Parent = frame
+-- Bouton "TP!"
+TPButton.Parent = ScreenGui
+TPButton.Size = UDim2.new(0, 100, 0, 50)
+TPButton.Position = UDim2.new(0.15, 0, 0.8, 0)
+TPButton.Text = "TP!"
 
-    local playerList = Instance.new("ScrollingFrame")
-    playerList.Size = UDim2.new(1, -10, 1, -50)
-    playerList.Position = UDim2.new(0, 5, 0, 45)
-    playerList.CanvasSize = UDim2.new(0, 0, 0, 0)
-    playerList.ScrollBarThickness = 6
-    playerList.BackgroundTransparency = 1
-    playerList.Parent = frame
+-- Variable de sauvegarde
+local savedPosition = nil
+local selecting = false
 
-    local layout = Instance.new("UIListLayout")
-    layout.Parent = playerList
-    layout.Padding = UDim.new(0, 5)
-    layout.SortOrder = Enum.SortOrder.LayoutOrder
+-- Quand on clique sur "+"
+PlusButton.MouseButton1Click:Connect(function()
+	selecting = true
+	print("Cliquez sur un endroit dans le monde pour sauvegarder la position.")
+end)
 
-    -- LocalScript pour gérer les boutons
-    local localScript = Instance.new("LocalScript")
-    localScript.Parent = screenGui
-    localScript.Source = [[
-        local Players = game:GetService("Players")
-        local ReplicatedStorage = game:GetService("ReplicatedStorage")
-        local kickEvent = ReplicatedStorage:WaitForChild("KickPlayerEvent")
-        local player = Players.LocalPlayer
-        local playerList = script.Parent.Frame.ScrollingFrame
-        local layout = playerList.UIListLayout
+-- Quand on clique dans le monde
+mouse.Button1Down:Connect(function()
+	if selecting then
+		if mouse.Hit then
+			savedPosition = mouse.Hit.Position
+			print("Position sauvegardée :", savedPosition)
+			selecting = false
+		end
+	end
+end)
 
-        -- Fonction pour ajouter un bouton joueur
-        local function addPlayerButton(p)
-            if p == player then return end
-            local button = Instance.new("TextButton")
-            button.Size = UDim2.new(1, -10, 0, 30)
-            button.Text = "Kick " .. p.Name
-            button.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-            button.TextColor3 = Color3.fromRGB(255, 255, 255)
-            button.Font = Enum.Font.SourceSansBold
-            button.TextSize = 16
-            button.Parent = playerList
-
-            button.MouseButton1Click:Connect(function()
-                kickEvent:FireServer(p.Name)
-            end)
-
-            p.AncestryChanged:Connect(function(_, parent)
-                if not parent then
-                    button:Destroy()
-                end
-            end)
-        end
-
-        -- Ajouter les joueurs existants
-        for _, plr in ipairs(Players:GetPlayers()) do
-            addPlayerButton(plr)
-        end
-
-        -- Quand un joueur rejoint
-        Players.PlayerAdded:Connect(addPlayerButton)
-
-        -- Ajuster la taille du scroll
-        layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-            playerList.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y)
-        end)
-    ]]
-
-    screenGui.Parent = player:WaitForChild("PlayerGui")
-end
-
--- Quand un joueur rejoint → créer l'UI si c'est vous
-Players.PlayerAdded:Connect(createUI)
-
--- Quand vous cliquez sur un bouton → le serveur kick
-kickEvent.OnServerEvent:Connect(function(player, targetName)
-    if player.UserId == 123456789 then -- 🔴 seulement vous pouvez kicker
-        local target = Players:FindFirstChild(targetName)
-        if target then
-            target:Kick("Vous avez été kick par un admin.")
-        end
-    end
+-- Quand on clique sur "TP!"
+TPButton.MouseButton1Click:Connect(function()
+	local character = player.Character
+	if character and character:FindFirstChild("HumanoidRootPart") and savedPosition then
+		character:MoveTo(savedPosition)
+	end
 end)
